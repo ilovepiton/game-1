@@ -3,117 +3,218 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Поймай кнопку</title>
+  <title>Counter-Strike Speed Test</title>
   <style>
+    :root{
+      --bg:#07090c;
+      --panel:rgba(255,255,255,0.06);
+      --line:rgba(255,255,255,0.12);
+      --txt:#e9eef7;
+      --mut:rgba(233,238,247,0.75);
+      --blue:#00b7ff;
+      --orange:#ff7a18;
+    }
+    *{ box-sizing:border-box; }
     body{
-      margin:0; height:100vh; display:flex; align-items:center; justify-content:center;
+      margin:0; height:100vh;
+      display:flex; align-items:center; justify-content:center;
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
-      color:#fff;
-      background: radial-gradient(circle at 20% 20%, #6a00ff, transparent 40%),
-                  radial-gradient(circle at 80% 60%, #00d4ff, transparent 45%),
-                  #0b0b12;
+      color:var(--txt);
+      background: var(--bg);
       overflow:hidden;
       user-select:none;
     }
+
+    /* CS2-ish background blobs */
+    .bg{
+      position:fixed; inset:-10vh -10vw;
+      pointer-events:none;
+      background:
+        radial-gradient(380px circle at 18% 20%, rgba(255,122,24,0.55), transparent 60%),
+        radial-gradient(460px circle at 78% 60%, rgba(0,183,255,0.45), transparent 62%),
+        radial-gradient(260px circle at 65% 18%, rgba(255,122,24,0.28), transparent 60%),
+        radial-gradient(240px circle at 28% 72%, rgba(0,183,255,0.22), transparent 62%);
+      filter: blur(2px);
+      opacity:0.95;
+    }
+
     .card{
-      width:min(920px, 95vw);
-      height:min(640px, 88vh);
-      border-radius:18px;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.12);
-      backdrop-filter: blur(10px);
-      box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+      width:min(980px, 95vw);
+      height:min(680px, 90vh);
+      border-radius:16px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.04));
+      border: 1px solid var(--line);
+      box-shadow: 0 24px 70px rgba(0,0,0,0.55);
       position:relative;
       overflow:hidden;
     }
+
+    /* top HUD */
     header{
-      display:flex; gap:12px; align-items:center; justify-content:space-between;
+      display:flex; align-items:center; justify-content:space-between;
       padding:14px 16px;
-      border-bottom: 1px solid rgba(255,255,255,0.10);
+      border-bottom:1px solid rgba(255,255,255,0.10);
+      background: rgba(0,0,0,0.25);
     }
-    .title{ font-weight:800; }
-    .stats{ display:flex; gap:10px; flex-wrap:wrap; font-size:14px; opacity:.9; }
+    .brand{
+      display:flex; flex-direction:column; gap:2px;
+      letter-spacing:0.2px;
+    }
+    .brand .title{
+      font-weight:900;
+      font-size:16px;
+      text-transform:uppercase;
+    }
+    .brand .sub{
+      font-size:12px;
+      color:var(--mut);
+    }
+
+    .stats{
+      display:flex; gap:10px; flex-wrap:wrap;
+      font-size:13px;
+    }
     .pill{
-      padding:6px 10px; border-radius:999px;
-      background: rgba(255,255,255,0.08);
-      border:1px solid rgba(255,255,255,0.12);
+      padding:7px 10px;
+      border-radius:999px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      backdrop-filter: blur(8px);
     }
+    .pill b{ font-weight:900; }
+    .pill.accent{
+      border-color: rgba(255,122,24,0.35);
+      box-shadow: 0 0 0 1px rgba(0,183,255,0.15) inset;
+    }
+
     .arena{
-      position:absolute; inset:56px 0 0 0;
+      position:absolute; inset:58px 0 0 0;
       padding:16px;
     }
-    #btn{
+
+    /* the target: white circle */
+    #target{
       position:absolute;
-      padding:12px 16px;
-      border-radius:14px;
-      border:0;
-      font-weight:800;
-      color:#fff;
-      background: rgba(255,255,255,0.14);
-      border:1px solid rgba(255,255,255,0.16);
+      width:64px; height:64px;
+      border-radius:50%;
+      border: 3px solid rgba(0,0,0,0.35);
+      background: #ffffff;
       cursor:pointer;
-      transition: transform .08s ease;
+      box-shadow:
+        0 14px 30px rgba(0,0,0,0.45),
+        0 0 0 3px rgba(255,122,24,0.22),
+        0 0 0 6px rgba(0,183,255,0.18);
+      transition: transform .06s ease;
+      display:none;
     }
-    #btn:active{ transform: scale(0.98); }
+    #target:active{ transform: scale(0.96); }
+
+    /* center panel */
     .center{
-      position:absolute; inset:56px 0 0 0;
+      position:absolute; inset:58px 0 0 0;
       display:flex; align-items:center; justify-content:center;
       text-align:center; padding:20px;
     }
     .panel{
-      max-width:520px;
+      max-width:560px;
       padding:22px 18px;
-      border-radius:18px;
-      background: rgba(0,0,0,0.18);
+      border-radius:16px;
+      background: rgba(0,0,0,0.35);
       border:1px solid rgba(255,255,255,0.12);
+      backdrop-filter: blur(10px);
     }
-    .panel h1{ margin:0 0 10px; font-size:28px; }
-    .panel p{ margin:0 0 16px; opacity:.85; line-height:1.35; }
+    .panel h1{
+      margin:0 0 10px;
+      font-size:28px;
+      text-transform:uppercase;
+      letter-spacing:0.6px;
+    }
+    .panel p{
+      margin:0 0 16px;
+      color:var(--mut);
+      line-height:1.35;
+    }
     .row{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
     .btn2{
-      border:0; cursor:pointer; font-weight:800;
-      padding:12px 14px; border-radius:14px;
-      background: rgba(255,255,255,0.14);
-      color:#fff;
-      border:1px solid rgba(255,255,255,0.16);
+      border:1px solid rgba(255,255,255,0.14);
+      cursor:pointer;
+      font-weight:900;
+      padding:12px 14px;
+      border-radius:12px;
+      color:var(--txt);
+      background: rgba(255,255,255,0.08);
+      text-transform:uppercase;
+      letter-spacing:0.4px;
     }
-    .small{ font-size:12px; opacity:.7; margin-top:10px; }
+    .btn2.orange{
+      border-color: rgba(255,122,24,0.35);
+      box-shadow: 0 0 0 1px rgba(255,122,24,0.18) inset;
+    }
+    .btn2.blue{
+      border-color: rgba(0,183,255,0.35);
+      box-shadow: 0 0 0 1px rgba(0,183,255,0.18) inset;
+    }
+    .small{ font-size:12px; color:rgba(233,238,247,0.65); margin-top:10px; }
+
+    /* tiny scanline vibe */
+    .scan{
+      position:absolute; inset:0;
+      background: repeating-linear-gradient(
+        180deg,
+        rgba(255,255,255,0.03) 0px,
+        rgba(255,255,255,0.03) 1px,
+        transparent 2px,
+        transparent 5px
+      );
+      opacity:0.10;
+      pointer-events:none;
+      mix-blend-mode: overlay;
+    }
   </style>
 </head>
 <body>
-  <div class="card" id="card">
+  <div class="bg"></div>
+
+  <div class="card">
+    <div class="scan"></div>
+
     <header>
-      <div class="title">🎮 Поймай кнопку</div>
+      <div class="brand">
+        <div class="title">Counter-Strike Speed Test</div>
+        <div class="sub">Click the target as fast as you can (30s)</div>
+      </div>
+
       <div class="stats">
-        <div class="pill">Очки: <b id="score">0</b></div>
-        <div class="pill">Промахи: <b id="miss">0</b></div>
-        <div class="pill">Рекорд: <b id="best">0</b></div>
-        <div class="pill">Время: <b id="time">30</b>с</div>
+        <div class="pill accent">Hits: <b id="score">0</b></div>
+        <div class="pill">Miss: <b id="miss">0</b></div>
+        <div class="pill">Best: <b id="best">0</b></div>
+        <div class="pill">Time: <b id="time">30</b>s</div>
       </div>
     </header>
 
     <div class="arena" id="arena">
-      <button id="btn" style="display:none;">Лови!</button>
+      <div id="target" aria-label="target"></div>
     </div>
 
     <div class="center" id="startScreen">
       <div class="panel">
-        <h1>Правила простые</h1>
-        <p>Нажми на кнопку <b>“Лови!”</b> как можно больше раз за 30 секунд.<br>
-           Она будет убегать 😄</p>
+        <h1>Speed test</h1>
+        <p>
+          Твоя задача: за 30 секунд сделать максимум <b>попаданий</b> по белому кружку.<br>
+          В режиме <b>PRO</b> кружок двигается агрессивнее.
+        </p>
         <div class="row">
-          <button class="btn2" id="startEasy">Старт (легко)</button>
-          <button class="btn2" id="startHard">Старт (сложно)</button>
+          <button class="btn2 blue" id="startNormal">Start</button>
+          <button class="btn2 orange" id="startPro">Start PRO</button>
         </div>
-        <div class="small">Подсказка: на “сложно” кнопка быстрее убегает.</div>
+        <div class="small">Подсказка: промах = клик мимо кружка.</div>
       </div>
     </div>
   </div>
 
   <script>
-    const card = document.getElementById("card");
     const arena = document.getElementById("arena");
-    const btn = document.getElementById("btn");
+    const target = document.getElementById("target");
     const startScreen = document.getElementById("startScreen");
 
     const scoreEl = document.getElementById("score");
@@ -121,33 +222,30 @@
     const bestEl  = document.getElementById("best");
     const timeEl  = document.getElementById("time");
 
-    const BEST_KEY = "catch_btn_best_v1";
+    const BEST_KEY = "cs_speed_best_v1";
     let best = Number(localStorage.getItem(BEST_KEY) || 0);
     bestEl.textContent = best;
 
     let score = 0, miss = 0, time = 30;
     let timer = null;
-    let mode = "easy"; // or hard
+    let mode = "normal"; // normal | pro
 
     function rand(min, max){ return Math.floor(Math.random()*(max-min+1))+min; }
 
-    function placeButton(){
+    function placeTarget(){
       const rect = arena.getBoundingClientRect();
+      const tw = target.offsetWidth || 64;
+      const th = target.offsetHeight || 64;
 
-      // размеры кнопки
-      const bw = btn.offsetWidth || 80;
-      const bh = btn.offsetHeight || 40;
-
-      // границы внутри арены
       const padding = 10;
-      const maxX = rect.width  - bw - padding;
-      const maxY = rect.height - bh - padding;
+      const maxX = rect.width  - tw - padding;
+      const maxY = rect.height - th - padding;
 
       const x = rand(padding, Math.max(padding, maxX));
       const y = rand(padding, Math.max(padding, maxY));
 
-      btn.style.left = x + "px";
-      btn.style.top  = y + "px";
+      target.style.left = x + "px";
+      target.style.top  = y + "px";
     }
 
     function startGame(selectedMode){
@@ -159,8 +257,8 @@
       timeEl.textContent = time;
 
       startScreen.style.display = "none";
-      btn.style.display = "block";
-      placeButton();
+      target.style.display = "block";
+      placeTarget();
 
       clearInterval(timer);
       timer = setInterval(() => {
@@ -174,7 +272,7 @@
 
     function endGame(){
       clearInterval(timer);
-      btn.style.display = "none";
+      target.style.display = "none";
       startScreen.style.display = "flex";
 
       if(score > best){
@@ -183,39 +281,38 @@
         bestEl.textContent = best;
       }
 
-      // обновим текст на экране
-      startScreen.querySelector("h1").textContent = "Игра окончена!";
+      startScreen.querySelector("h1").textContent = "Result";
       startScreen.querySelector("p").innerHTML =
-        `Твои очки: <b>${score}</b><br>Промахи: <b>${miss}</b><br>` +
-        (score === best ? "Новый рекорд! 🏆" : `Рекорд: <b>${best}</b>`);
+        `Hits: <b>${score}</b><br>Miss: <b>${miss}</b><br>` +
+        (score === best ? "New best! 🏆" : `Best: <b>${best}</b>`);
     }
 
-    // клик по кнопке = очко и перенос
-    btn.addEventListener("click", (e) => {
+    // hit
+    target.addEventListener("click", (e) => {
       e.stopPropagation();
       score++;
       scoreEl.textContent = score;
-      placeButton();
+      placeTarget();
     });
 
-    // “убегание”: при наведении/приближении
-    btn.addEventListener("mouseenter", () => {
-      if(btn.style.display === "none") return;
-      if(mode === "hard") placeButton();
-      else if(Math.random() < 0.45) placeButton();
+    // “move away” effect
+    target.addEventListener("mouseenter", () => {
+      if(target.style.display === "none") return;
+      if(mode === "pro") placeTarget();
+      else if(Math.random() < 0.35) placeTarget();
     });
 
-    // промах (клик в арене мимо кнопки)
+    // miss click
     arena.addEventListener("click", () => {
-      if(btn.style.display === "none") return;
+      if(target.style.display === "none") return;
       miss++;
       missEl.textContent = miss;
-      if(mode === "hard" && Math.random() < 0.35) placeButton();
+      if(mode === "pro" && Math.random() < 0.35) placeTarget();
     });
 
-    // стартовые кнопки
-    document.getElementById("startEasy").addEventListener("click", () => startGame("easy"));
-    document.getElementById("startHard").addEventListener("click", () => startGame("hard"));
+    // start buttons
+    document.getElementById("startNormal").addEventListener("click", () => startGame("normal"));
+    document.getElementById("startPro").addEventListener("click", () => startGame("pro"));
   </script>
 </body>
 </html>
