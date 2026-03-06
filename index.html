@@ -646,9 +646,39 @@
     }
 
     // Upsert by primary key (nick, mode)
-    async function pushOnline(nick, mode, hits){
-      const url = `/rest/v1/scores?on_conflict=nick,mode`;
-      const payload = [{ nick, mode, hits, updated_at: new Date().toISOString() }];
+   async function pushOnline(nick, mode, hits){
+  // 1) read current best for this nick+mode
+  const q = `/rest/v1/scores?select=hits&nick=eq.${encodeURIComponent(nick)}&mode=eq.${encodeURIComponent(mode)}&limit=1`;
+  const r1 = await sbFetch(q, { method: "GET" });
+
+  let current = 0;
+  if(r1.ok){
+    const arr = await r1.json();
+    if(Array.isArray(arr) && arr.length) current = Number(arr[0].hits || 0);
+  }
+
+  // 2) if not better — do nothing
+  if(hits <= current) return;
+
+  // 3) upsert (write new best)
+  const url = `/rest/v1/scores?on_conflict=nick,mode`;
+  const payload = [{ nick, mode, hits, updated_at: new Date().toISOString() }];
+
+  const r2 = await sbFetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Prefer": "resolution=merge-duplicates"
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if(!r2.ok){
+    const t = await r2.text().catch(()=> "");
+    console.log("pushOnline error", r2.status, t);
+    throw new Error("pushOnline failed");
+  }
+}
 
       const res = await sbFetch(url, {
         method: "POST",
