@@ -760,7 +760,7 @@
 
       const list = Array.from(rows.values())
         .sort((a,b) => (b.normal + b.pro) - (a.normal + a.pro))
-        .slice(0, 12);
+        .slice(0, 99);
 
       for(const r of list){
         board.insertAdjacentHTML("beforeend", `
