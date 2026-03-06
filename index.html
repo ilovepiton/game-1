@@ -26,7 +26,6 @@
       user-select:none;
     }
 
-    /* orange + blue circles background */
     .bg{
       position:fixed; inset:-10vh -10vw;
       pointer-events:none;
@@ -50,7 +49,6 @@
       overflow:hidden;
     }
 
-    /* subtle scanlines */
     .scan{
       position:absolute; inset:0;
       background: repeating-linear-gradient(
@@ -116,7 +114,6 @@
       padding:16px;
     }
 
-    /* BACK button during gameplay */
     .backBtn{
       position:absolute;
       top:14px;
@@ -139,7 +136,6 @@
       box-shadow: 0 0 0 1px rgba(255,122,24,0.15) inset;
     }
 
-    /* target: white circle */
     #target{
       position:absolute;
       width:64px; height:64px;
@@ -156,7 +152,6 @@
     }
     #target:active{ transform: scale(0.96); }
 
-    /* menu layout */
     .menuWrap{
       position:absolute; inset:58px 0 0 0;
       display:flex;
@@ -214,7 +209,6 @@
     }
     .small{ font-size:12px; color:rgba(233,238,247,0.65); margin-top:10px; }
 
-    /* leaderboard */
     .board{
       width: min(380px, 40vw);
       border-radius:16px;
@@ -297,7 +291,6 @@
       line-height:1.3;
     }
 
-    /* nickname modal */
     .modal{
       position:fixed; inset:0;
       display:flex; align-items:center; justify-content:center;
@@ -406,25 +399,16 @@
 
         <div class="table" id="boardTable">
           <div class="th">Player</div><div class="th" style="text-align:right;">Normal</div><div class="th" style="text-align:right;">Pro</div>
-
-          <!-- baseline (will be merged with online) -->
-          <div class="name"><span class="tag"></span>donk</div><div class="val normal">47</div><div class="val pro">30</div>
-          <div class="name"><span class="tag"></span>s1mple</div><div class="val normal">44</div><div class="val pro">28</div>
-          <div class="name"><span class="tag"></span>m0nesy</div><div class="val normal">46</div><div class="val pro">29</div>
-          <div class="name"><span class="tag"></span>zywoo</div><div class="val normal">43</div><div class="val pro">27</div>
-          <div class="name"><span class="tag"></span>ropz</div><div class="val normal">40</div><div class="val pro">25</div>
-          <div class="name"><span class="tag"></span>sh1ro</div><div class="val normal">39</div><div class="val pro">24</div>
         </div>
 
         <div class="boardFoot" id="boardFoot">
           Лидерборд общий для всех (Supabase).<br>
-          Если пусто — сыграй и нажми Refresh.
+          Сыграй и нажми Refresh.
         </div>
       </aside>
     </div>
   </div>
 
-  <!-- Nickname modal -->
   <div class="modal" id="nickModal" style="display:none;">
     <div class="modalBox">
       <h2>Enter nickname</h2>
@@ -641,46 +625,26 @@
         "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
         ...(options.headers || {})
       };
-      const res = await fetch(url, { ...options, headers });
-      return res;
+      return await fetch(url, { ...options, headers });
     }
 
-    // Upsert by primary key (nick, mode)
-   async function pushOnline(nick, mode, hits){
-  // 1) read current best for this nick+mode
-  const q = `/rest/v1/scores?select=hits&nick=eq.${encodeURIComponent(nick)}&mode=eq.${encodeURIComponent(mode)}&limit=1`;
-  const r1 = await sbFetch(q, { method: "GET" });
+    // ✅ write only if better (never overwrite by worse)
+    async function pushOnline(nick, mode, hits){
+      const q = `/rest/v1/scores?select=hits&nick=eq.${encodeURIComponent(nick)}&mode=eq.${encodeURIComponent(mode)}&limit=1`;
+      const r1 = await sbFetch(q, { method: "GET" });
 
-  let current = 0;
-  if(r1.ok){
-    const arr = await r1.json();
-    if(Array.isArray(arr) && arr.length) current = Number(arr[0].hits || 0);
-  }
+      let current = 0;
+      if(r1.ok){
+        const arr = await r1.json();
+        if(Array.isArray(arr) && arr.length) current = Number(arr[0].hits || 0);
+      }
 
-  // 2) if not better — do nothing
-  if(hits <= current) return;
+      if(hits <= current) return;
 
-  // 3) upsert (write new best)
-  const url = `/rest/v1/scores?on_conflict=nick,mode`;
-  const payload = [{ nick, mode, hits, updated_at: new Date().toISOString() }];
+      const url = `/rest/v1/scores?on_conflict=nick,mode`;
+      const payload = [{ nick, mode, hits, updated_at: new Date().toISOString() }];
 
-  const r2 = await sbFetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Prefer": "resolution=merge-duplicates"
-    },
-    body: JSON.stringify(payload),
-  });
-
-  if(!r2.ok){
-    const t = await r2.text().catch(()=> "");
-    console.log("pushOnline error", r2.status, t);
-    throw new Error("pushOnline failed");
-  }
-}
-
-      const res = await sbFetch(url, {
+      const r2 = await sbFetch(url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -689,9 +653,9 @@
         body: JSON.stringify(payload),
       });
 
-      if(!res.ok){
-        const t = await res.text().catch(()=> "");
-        console.log("pushOnline error", res.status, t);
+      if(!r2.ok){
+        const t = await r2.text().catch(()=> "");
+        console.log("pushOnline error", r2.status, t);
         throw new Error("pushOnline failed");
       }
     }
@@ -724,7 +688,6 @@
         <div class="th" style="text-align:right;">Pro</div>
       `;
 
-      // baseline pro players
       const baseline = [
         { nick: "donk",   normal: 47, pro: 30 },
         { nick: "s1mple", normal: 44, pro: 28 },
