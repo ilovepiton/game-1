@@ -394,31 +394,31 @@
         <div class="small" id="resultText">Подсказка: промах = клик мимо кружка.</div>
         <div class="row" style="margin-top:12px;">
           <button class="btn2" id="changeNick">Change nickname</button>
-          <button class="btn2" id="resetLocal">Reset local leaderboard</button>
+          <button class="btn2" id="refreshLb">Refresh leaderboard</button>
         </div>
       </div>
 
       <aside class="board">
         <div class="boardTitle">
-          <div class="t">Leaderboard</div>
+          <div class="t">Online leaderboard</div>
           <div class="s">Normal / Pro</div>
         </div>
 
         <div class="table" id="boardTable">
           <div class="th">Player</div><div class="th" style="text-align:right;">Normal</div><div class="th" style="text-align:right;">Pro</div>
 
-          <!-- Pro players baseline -->
-          <div class="name"><span class="tag"></span>Donk</div><div class="val normal">47</div><div class="val pro">30</div>
+          <!-- baseline (will be merged with online) -->
+          <div class="name"><span class="tag"></span>donk</div><div class="val normal">47</div><div class="val pro">30</div>
           <div class="name"><span class="tag"></span>s1mple</div><div class="val normal">44</div><div class="val pro">28</div>
-          <div class="name"><span class="tag"></span>m0NESY</div><div class="val normal">46</div><div class="val pro">29</div>
-          <div class="name"><span class="tag"></span>ZywOo</div><div class="val normal">43</div><div class="val pro">27</div>
+          <div class="name"><span class="tag"></span>m0nesy</div><div class="val normal">46</div><div class="val pro">29</div>
+          <div class="name"><span class="tag"></span>zywoo</div><div class="val normal">43</div><div class="val pro">27</div>
           <div class="name"><span class="tag"></span>ropz</div><div class="val normal">40</div><div class="val pro">25</div>
           <div class="name"><span class="tag"></span>sh1ro</div><div class="val normal">39</div><div class="val pro">24</div>
         </div>
 
         <div class="boardFoot" id="boardFoot">
-          Сейчас лидерборд локальный (в браузере).<br>
-          Когда подключим базу — станет онлайн для всех.
+          Лидерборд общий для всех (Supabase).<br>
+          Если пусто — сыграй и нажми Refresh.
         </div>
       </aside>
     </div>
@@ -428,9 +428,9 @@
   <div class="modal" id="nickModal" style="display:none;">
     <div class="modalBox">
       <h2>Enter nickname</h2>
-      <p>Ник нужен для лидерборда. Можно латиницей, цифры, “_”.</p>
+      <p>Ник нужен для лидерборда. Только латиница/цифры/“_”.</p>
       <div class="modalRow">
-        <input class="nickInput" id="nickInput" maxlength="16" placeholder="например: klim" />
+        <input class="nickInput" id="nickInput" maxlength="16" placeholder="nickname" />
         <button class="btn2 blue" id="nickSave">Save</button>
       </div>
       <div class="modalHint">Ограничение: 3–16 символов, только A–Z 0–9 _</div>
@@ -438,17 +438,9 @@
   </div>
 
   <script>
-    // ====== OPTIONAL ONLINE LEADERBOARD (Supabase) ======
-    // Чтобы сделать онлайн лидерборд:
-    // 1) Создай Supabase project
-    // 2) Создай таблицу "scores" (nick text, mode text, hits int, updated_at timestamp)
-    // 3) Вставь сюда URL и ANON KEY
-    // const SUPABASE_URL = "https://xxxx.supabase.co";
-    // const SUPABASE_ANON_KEY = "ey....";
-    // В текущей версии лидерборд локальный, работает без настроек.
-    const SUPABASE_URL = "";
-    const SUPABASE_ANON_KEY = "";
-    // ====================================================
+    // ===== Supabase (ONLINE) =====
+    const SUPABASE_URL = "https://iysnzbbaiekxnrbzihcl.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_iTTBZw8rEGxWfPTJCAw1tw_kZnersHD";
 
     const arena = document.getElementById("arena");
     const target = document.getElementById("target");
@@ -467,11 +459,12 @@
     const nickInput = document.getElementById("nickInput");
     const nickSave  = document.getElementById("nickSave");
     const changeNickBtn = document.getElementById("changeNick");
-    const resetLocalBtn = document.getElementById("resetLocal");
+    const refreshLbBtn = document.getElementById("refreshLb");
 
-    const BEST_KEY = "cs_speed_best_v3";
+    const boardFoot = document.getElementById("boardFoot");
+
+    const BEST_KEY = "cs_speed_best_online_v1";
     const NICK_KEY = "cs_speed_nick_v1";
-    const LOCAL_LB_KEY = "cs_speed_local_lb_v1";
 
     let nick = localStorage.getItem(NICK_KEY) || "";
     let best = Number(localStorage.getItem(BEST_KEY) || 0);
@@ -500,9 +493,7 @@
     }
     function setNick(newNick){
       nick = sanitizeNick(newNick);
-      if(nick.length < 3){
-        return false;
-      }
+      if(nick.length < 3) return false;
       localStorage.setItem(NICK_KEY, nick);
       nickLabel.textContent = nick;
       return true;
@@ -562,14 +553,6 @@
       }, 1000);
     }
 
-    function goMenu(){
-      running = false;
-      clearInterval(timer);
-      target.style.display = "none";
-      backBtn.style.display = "none";
-      menu.style.display = "flex";
-    }
-
     function endGame(byBack){
       running = false;
       clearInterval(timer);
@@ -577,31 +560,28 @@
       backBtn.style.display = "none";
       menu.style.display = "flex";
 
-      if(!byBack){
-        // record best
-        if(score > best){
-          best = score;
-          localStorage.setItem(BEST_KEY, best);
-          bestEl.textContent = best;
-        }
-
-        const total = score + miss;
-        const acc = total === 0 ? 0 : Math.round((score / total) * 100);
-        resultText.innerHTML = `Result: <b>${score}</b> hits · <b>${acc}%</b> accuracy · mode: <b>${mode.toUpperCase()}</b>`;
-
-        // update leaderboard (local now, optional online later)
-        updateLocalLeaderboard(nick, mode, score);
-        renderLeaderboard();
-        // optional: push online if configured
-        if(SUPABASE_URL && SUPABASE_ANON_KEY){
-          pushOnline(nick, mode, score).catch(()=>{});
-        }
-      } else {
+      if(byBack){
         resultText.textContent = "Возврат в меню.";
+        return;
       }
+
+      if(score > best){
+        best = score;
+        localStorage.setItem(BEST_KEY, best);
+        bestEl.textContent = best;
+      }
+
+      const total = score + miss;
+      const acc = total === 0 ? 0 : Math.round((score / total) * 100);
+      resultText.innerHTML = `Result: <b>${score}</b> hits · <b>${acc}%</b> accuracy · mode: <b>${mode.toUpperCase()}</b>`;
+
+      // push to supabase and refresh leaderboard
+      pushOnline(nick, mode, score)
+        .then(() => renderLeaderboard())
+        .catch(() => renderLeaderboard());
     }
 
-    // hits
+    // hit
     target.addEventListener("click", (e) => {
       e.stopPropagation();
       if(!running) return;
@@ -627,7 +607,7 @@
       if(mode === "pro" && Math.random() < 0.35) placeTarget();
     });
 
-    // back button
+    // back
     backBtn.addEventListener("click", (e) => {
       e.stopPropagation();
       endGame(true);
@@ -636,7 +616,7 @@
     document.getElementById("startNormal").addEventListener("click", () => startGame("normal"));
     document.getElementById("startPro").addEventListener("click", () => startGame("pro"));
 
-    // nickname modal actions
+    // nick modal
     nickSave.addEventListener("click", () => {
       const ok = setNick(nickInput.value);
       if(!ok){
@@ -651,81 +631,49 @@
     });
 
     changeNickBtn.addEventListener("click", () => showNickModal());
+    refreshLbBtn.addEventListener("click", () => renderLeaderboard());
 
-    resetLocalBtn.addEventListener("click", () => {
-      localStorage.removeItem(LOCAL_LB_KEY);
-      renderLeaderboard();
-      resultText.textContent = "Локальный лидерборд очищен.";
-    });
-
-    // ====== LOCAL LEADERBOARD ======
-    // store best per nick per mode
-    function loadLocalLB(){
-      try { return JSON.parse(localStorage.getItem(LOCAL_LB_KEY) || "{}"); }
-      catch { return {}; }
-    }
-    function saveLocalLB(obj){
-      localStorage.setItem(LOCAL_LB_KEY, JSON.stringify(obj));
-    }
-    function updateLocalLeaderboard(nick, mode, hits){
-      const lb = loadLocalLB();
-      if(!lb[nick]) lb[nick] = { normal: 0, pro: 0 };
-      lb[nick][mode] = Math.max(lb[nick][mode] || 0, hits);
-      saveLocalLB(lb);
+    // ===== SUPABASE REST HELPERS =====
+    async function sbFetch(pathWithQuery, options = {}){
+      const url = `${SUPABASE_URL}${pathWithQuery}`;
+      const headers = {
+        "apikey": SUPABASE_ANON_KEY,
+        "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+        ...(options.headers || {})
+      };
+      const res = await fetch(url, { ...options, headers });
+      return res;
     }
 
-    function getMergedRows(){
-      // baseline pro players + local users
-      const baseline = [
-        { nick: "donk",   normal: 47, pro: 30 },
-        { nick: "s1mple", normal: 44, pro: 28 },
-        { nick: "m0nesy", normal: 46, pro: 29 },
-        { nick: "zywoo",  normal: 43, pro: 27 },
-        { nick: "ropz",   normal: 40, pro: 25 },
-        { nick: "sh1ro",  normal: 39, pro: 24 },
-      ];
-      const lb = loadLocalLB();
-      const localRows = Object.keys(lb).map(k => ({
-        nick: k,
-        normal: Number(lb[k].normal || 0),
-        pro: Number(lb[k].pro || 0),
-      }));
-      // merge by nick
-      const map = new Map();
-      for(const r of baseline) map.set(r.nick, r);
-      for(const r of localRows){
-        const prev = map.get(r.nick);
-        if(prev){
-          prev.normal = Math.max(prev.normal, r.normal);
-          prev.pro = Math.max(prev.pro, r.pro);
-        } else {
-          map.set(r.nick, r);
-        }
+    // Upsert by primary key (nick, mode)
+    async function pushOnline(nick, mode, hits){
+      const url = `/rest/v1/scores?on_conflict=nick,mode`;
+      const payload = [{ nick, mode, hits, updated_at: new Date().toISOString() }];
+
+      const res = await sbFetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Prefer": "resolution=merge-duplicates"
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if(!res.ok){
+        const t = await res.text().catch(()=> "");
+        console.log("pushOnline error", res.status, t);
+        throw new Error("pushOnline failed");
       }
-      return Array.from(map.values());
     }
 
-    function renderLeaderboard(){
-      const board = document.getElementById("boardTable");
-      // keep header row only
-      board.innerHTML = `
-        <div class="th">Player</div>
-        <div class="th" style="text-align:right;">Normal</div>
-        <div class="th" style="text-align:right;">Pro</div>
-      `;
-
-      const rows = getMergedRows()
-        .sort((a,b) => (b.normal + b.pro) - (a.normal + a.pro))
-        .slice(0, 12);
-
-      for(const r of rows){
-        const display = r.nick;
-        board.insertAdjacentHTML("beforeend", `
-          <div class="name"><span class="tag"></span>${escapeHtml(display)}</div>
-          <div class="val normal">${r.normal || 0}</div>
-          <div class="val pro">${r.pro || 0}</div>
-        `);
+    async function loadOnlineScores(){
+      const res = await sbFetch(`/rest/v1/scores?select=nick,mode,hits`, { method: "GET" });
+      if(!res.ok){
+        const t = await res.text().catch(()=> "");
+        console.log("loadOnline error", res.status, t);
+        throw new Error("loadOnline failed");
       }
+      return await res.json();
     }
 
     function escapeHtml(s){
@@ -737,38 +685,71 @@
         .replaceAll("'","&#039;");
     }
 
-    // ====== ONLINE (OPTIONAL) ======
-    // Minimal POST to Supabase REST API (no external libs).
-    async function pushOnline(nick, mode, hits){
-      // This runs only if URL+KEY are filled.
-      const url = `${SUPABASE_URL}/rest/v1/scores`;
-      const payload = { nick, mode, hits, updated_at: new Date().toISOString() };
+    // ===== LEADERBOARD RENDER =====
+    async function renderLeaderboard(){
+      const board = document.getElementById("boardTable");
+      board.innerHTML = `
+        <div class="th">Player</div>
+        <div class="th" style="text-align:right;">Normal</div>
+        <div class="th" style="text-align:right;">Pro</div>
+      `;
 
-      // upsert requires unique constraint on (nick, mode)
-      // and header "Prefer: resolution=merge-duplicates"
-      const res = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "apikey": SUPABASE_ANON_KEY,
-          "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
-          "Prefer": "resolution=merge-duplicates"
-        },
-        body: JSON.stringify(payload),
-      });
-      if(!res.ok){
-        // ignore
+      // baseline pro players
+      const baseline = [
+        { nick: "donk",   normal: 47, pro: 30 },
+        { nick: "s1mple", normal: 44, pro: 28 },
+        { nick: "m0nesy", normal: 46, pro: 29 },
+        { nick: "zywoo",  normal: 43, pro: 27 },
+        { nick: "ropz",   normal: 40, pro: 25 },
+        { nick: "sh1ro",  normal: 39, pro: 24 },
+      ];
+
+      const rows = new Map();
+      for(const r of baseline) rows.set(r.nick, { ...r });
+
+      try{
+        boardFoot.textContent = "Loading online leaderboard...";
+        const online = await loadOnlineScores();
+
+        for(const r of online){
+          const n = sanitizeNick(r.nick);
+          const m = r.mode;
+          const h = Number(r.hits || 0);
+          if(!n) continue;
+
+          const prev = rows.get(n) || { nick:n, normal:0, pro:0 };
+          if(m === "normal") prev.normal = Math.max(prev.normal || 0, h);
+          if(m === "pro")     prev.pro   = Math.max(prev.pro   || 0, h);
+          rows.set(n, prev);
+        }
+
+        boardFoot.innerHTML = `Online: <b>${online.length}</b> rows loaded · click Refresh to update.`;
+      } catch(e){
+        boardFoot.textContent = "Не удалось загрузить онлайн лидерборд (проверь RLS/policies и таблицу).";
+      }
+
+      const list = Array.from(rows.values())
+        .sort((a,b) => (b.normal + b.pro) - (a.normal + a.pro))
+        .slice(0, 12);
+
+      for(const r of list){
+        board.insertAdjacentHTML("beforeend", `
+          <div class="name"><span class="tag"></span>${escapeHtml(r.nick)}</div>
+          <div class="val normal">${r.normal || 0}</div>
+          <div class="val pro">${r.pro || 0}</div>
+        `);
       }
     }
 
-    // ====== INIT ======
+    // ===== INIT =====
     if(nick){
       nickLabel.textContent = nick;
     } else {
       nickLabel.textContent = "—";
       showNickModal();
     }
-    renderLeaderboard();
+
+    renderLeaderboard().catch(()=>{});
   </script>
 </body>
 </html>
