@@ -94,6 +94,7 @@
       display:flex; gap:10px; flex-wrap:wrap;
       font-size:13px;
       justify-content:flex-end;
+      align-items:center;
     }
     .pill{
       padding:7px 10px;
@@ -108,6 +109,18 @@
       border-color: rgba(255,122,24,0.35);
       box-shadow: 0 0 0 1px rgba(0,183,255,0.15) inset;
     }
+
+    /* language button */
+    .langSelect{
+      padding:7px 10px;
+      border-radius:999px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: var(--txt);
+      outline:none;
+      cursor:pointer;
+    }
+    .langSelect option{ color:#000; }
 
     .arena{
       position:absolute; inset:58px 0 0 0;
@@ -352,56 +365,66 @@
 
     <header>
       <div class="brand">
-        <div class="title">Counter-Strike Speed Test</div>
-        <div class="sub"><b>Developer: Klim</b> · Hit the white circle as fast as you can (30s)</div>
+        <div class="title" data-i18n="title">COUNTER-STRIKE SPEED TEST</div>
+        <div class="sub" data-i18n="subtitle"><b>Developer: Klim</b> · Hit the white circle as fast as you can (30s)</div>
       </div>
 
       <div class="stats">
-        <div class="pill accent">Hits: <b id="score">0</b></div>
-        <div class="pill">Miss: <b id="miss">0</b></div>
-        <div class="pill">Best: <b id="best">0</b></div>
-        <div class="pill">Time: <b id="time">30</b>s</div>
-        <div class="pill">Accuracy: <b id="acc">0</b>%</div>
-        <div class="pill">Nick: <b id="nickLabel">—</b></div>
+        <select id="lang" class="langSelect" title="Language">
+          <option value="en">English</option>
+          <option value="ru">Русский</option>
+          <option value="es">Español</option>
+          <option value="fr">Français</option>
+          <option value="zh">中文</option>
+        </select>
+
+        <div class="pill accent"><span data-i18n="hits">Hits</span>: <b id="score">0</b></div>
+        <div class="pill"><span data-i18n="miss">Miss</span>: <b id="miss">0</b></div>
+        <div class="pill"><span data-i18n="best">Best</span>: <b id="best">0</b></div>
+        <div class="pill"><span data-i18n="time">Time</span>: <b id="time">30</b><span data-i18n="sec">s</span></div>
+        <div class="pill"><span data-i18n="accuracy">Accuracy</span>: <b id="acc">0</b>%</div>
+        <div class="pill"><span data-i18n="nick">Nick</span>: <b id="nickLabel">—</b></div>
       </div>
     </header>
 
     <div class="arena" id="arena">
-      <button id="backBtn" class="backBtn">← Back</button>
+      <button id="backBtn" class="backBtn" data-i18n="back">← Back</button>
       <div id="target" aria-label="target"></div>
     </div>
 
     <div class="menuWrap" id="menu">
       <div class="mainPanel">
-        <h1>Speed test</h1>
-        <p>
+        <h1 data-i18n="menuTitle">SPEED TEST</h1>
+        <p data-i18n="menuText">
           30 секунд. Набери максимум <b>Hits</b> по белому кружку.<br>
           <b>PRO</b> — цель двигается агрессивнее.
         </p>
 
         <div class="row">
-          <button class="btn2 blue" id="startNormal">Start</button>
-          <button class="btn2 orange" id="startPro">Start PRO</button>
+          <button class="btn2 blue" id="startNormal" data-i18n="start">Start</button>
+          <button class="btn2 orange" id="startPro" data-i18n="startPro">Start PRO</button>
         </div>
 
-        <div class="small" id="resultText">Подсказка: промах = клик мимо кружка.</div>
+        <div class="small" id="resultText" data-i18n="hint">Подсказка: промах = клик мимо кружка.</div>
         <div class="row" style="margin-top:12px;">
-          <button class="btn2" id="changeNick">Change nickname</button>
-          <button class="btn2" id="refreshLb">Refresh leaderboard</button>
+          <button class="btn2" id="changeNick" data-i18n="changeNick">Change nickname</button>
+          <button class="btn2" id="refreshLb" data-i18n="refresh">Refresh leaderboard</button>
         </div>
       </div>
 
       <aside class="board">
         <div class="boardTitle">
-          <div class="t">Online leaderboard</div>
-          <div class="s">Normal / Pro</div>
+          <div class="t" data-i18n="lbTitle">Online leaderboard</div>
+          <div class="s" data-i18n="lbModes">Normal / Pro</div>
         </div>
 
         <div class="table" id="boardTable">
-          <div class="th">Player</div><div class="th" style="text-align:right;">Normal</div><div class="th" style="text-align:right;">Pro</div>
+          <div class="th" data-i18n="lbPlayer">Player</div>
+          <div class="th" style="text-align:right;" data-i18n="lbNormal">Normal</div>
+          <div class="th" style="text-align:right;" data-i18n="lbPro">Pro</div>
         </div>
 
-        <div class="boardFoot" id="boardFoot">
+        <div class="boardFoot" id="boardFoot" data-i18n="lbFoot">
           Лидерборд общий для всех (Supabase).<br>
           Сыграй и нажми Refresh.
         </div>
@@ -411,13 +434,13 @@
 
   <div class="modal" id="nickModal" style="display:none;">
     <div class="modalBox">
-      <h2>Enter nickname</h2>
-      <p>Ник нужен для лидерборда. Только латиница/цифры/“_”.</p>
+      <h2 data-i18n="nickTitle">Enter nickname</h2>
+      <p data-i18n="nickText">Ник нужен для лидерборда. Только латиница/цифры/“_”.</p>
       <div class="modalRow">
         <input class="nickInput" id="nickInput" maxlength="16" placeholder="nickname" />
-        <button class="btn2 blue" id="nickSave">Save</button>
+        <button class="btn2 blue" id="nickSave" data-i18n="save">Save</button>
       </div>
-      <div class="modalHint">Ограничение: 3–16 символов, только A–Z 0–9 _</div>
+      <div class="modalHint" data-i18n="nickHint">Ограничение: 3–16 символов, только A–Z 0–9 _</div>
     </div>
   </div>
 
@@ -446,9 +469,11 @@
     const refreshLbBtn = document.getElementById("refreshLb");
 
     const boardFoot = document.getElementById("boardFoot");
+    const langSel = document.getElementById("lang");
 
     const BEST_KEY = "cs_speed_best_online_v1";
     const NICK_KEY = "cs_speed_nick_v1";
+    const LANG_KEY = "cs_speed_lang_v1";
 
     let nick = localStorage.getItem(NICK_KEY) || "";
     let best = Number(localStorage.getItem(BEST_KEY) || 0);
@@ -458,6 +483,196 @@
     let timer = null;
     let mode = "normal"; // normal | pro
     let running = false;
+
+    // ===== i18n =====
+    const I18N = {
+      en: {
+        title: "COUNTER-STRIKE SPEED TEST",
+        subtitle: "<b>Developer: Klim</b> · Hit the white circle as fast as you can (30s)",
+        hits: "Hits", miss: "Miss", best: "Best", time: "Time", sec: "s", accuracy: "Accuracy", nick: "Nick",
+        back: "← Back",
+        menuTitle: "SPEED TEST",
+        menuText: "30 seconds. Get maximum <b>Hits</b> on the white circle.<br><b>PRO</b> — target moves aggressively.",
+        start: "Start",
+        startPro: "Start PRO",
+        hint: "Tip: miss = click outside the circle.",
+        changeNick: "Change nickname",
+        refresh: "Refresh leaderboard",
+        lbTitle: "ONLINE LEADERBOARD",
+        lbModes: "Normal / Pro",
+        lbPlayer: "Player",
+        lbNormal: "Normal",
+        lbPro: "Pro",
+        lbFoot: "Leaderboard is shared for everyone (Supabase).<br>Play and click Refresh.",
+        nickTitle: "Enter nickname",
+        nickText: "Nickname is needed for leaderboard. Only latin letters, digits, “_”.",
+        save: "Save",
+        nickHint: "3–16 chars, only A–Z 0–9 _",
+        resultTpl: (s, acc, m) => `Result: <b>${s}</b> hits · <b>${acc}%</b> accuracy · mode: <b>${m}</b>`,
+        running: "Test running... click fast!",
+        backToMenu: "Back to menu.",
+        loading: "Loading online leaderboard...",
+        loaded: (n) => `Online: <b>${n}</b> rows loaded · click Refresh to update.`,
+        fail: "Failed to load online leaderboard (check RLS/policies and table).",
+        modeLabel: (m) => (m === "pro" ? "PRO" : "NORMAL"),
+      },
+      ru: {
+        title: "COUNTER-STRIKE SPEED TEST",
+        subtitle: "<b>Developer: Klim</b> · Жми по белому кружку как можно быстрее (30с)",
+        hits: "Попад", miss: "Мимо", best: "Рекорд", time: "Время", sec: "с", accuracy: "Точность", nick: "Ник",
+        back: "← Назад",
+        menuTitle: "SPEED TEST",
+        menuText: "30 секунд. Набери максимум <b>Hits</b> по белому кружку.<br><b>PRO</b> — цель двигается агрессивнее.",
+        start: "Старт",
+        startPro: "Старт PRO",
+        hint: "Подсказка: промах = клик мимо кружка.",
+        changeNick: "Сменить ник",
+        refresh: "Обновить лидерборд",
+        lbTitle: "ONLINE LEADERBOARD",
+        lbModes: "Normal / Pro",
+        lbPlayer: "Игрок",
+        lbNormal: "Normal",
+        lbPro: "Pro",
+        lbFoot: "Лидерборд общий для всех (Supabase).<br>Сыграй и нажми Обновить.",
+        nickTitle: "Введи ник",
+        nickText: "Ник нужен для лидерборда. Только латиница/цифры/“_”.",
+        save: "Сохранить",
+        nickHint: "3–16 символов, только A–Z 0–9 _",
+        resultTpl: (s, acc, m) => `Результат: <b>${s}</b> hits · <b>${acc}%</b> точность · режим: <b>${m}</b>`,
+        running: "Тест идёт... жми быстро!",
+        backToMenu: "Возврат в меню.",
+        loading: "Загрузка онлайн лидерборда...",
+        loaded: (n) => `Online: <b>${n}</b> rows loaded · обновляй кнопкой Refresh.`,
+        fail: "Не удалось загрузить онлайн лидерборд (проверь RLS/policies и таблицу).",
+        modeLabel: (m) => (m === "pro" ? "PRO" : "NORMAL"),
+      },
+      es: {
+        title: "COUNTER-STRIKE SPEED TEST",
+        subtitle: "<b>Developer: Klim</b> · Haz clic en el círculo blanco lo más rápido posible (30s)",
+        hits: "Aciertos", miss: "Fallos", best: "Mejor", time: "Tiempo", sec: "s", accuracy: "Precisión", nick: "Nick",
+        back: "← Volver",
+        menuTitle: "SPEED TEST",
+        menuText: "30 segundos. Consigue el máximo de <b>Hits</b> en el círculo blanco.<br><b>PRO</b> — el objetivo se mueve agresivamente.",
+        start: "Start",
+        startPro: "Start PRO",
+        hint: "Consejo: fallo = clic fuera del círculo.",
+        changeNick: "Cambiar nick",
+        refresh: "Actualizar ranking",
+        lbTitle: "ONLINE LEADERBOARD",
+        lbModes: "Normal / Pro",
+        lbPlayer: "Jugador",
+        lbNormal: "Normal",
+        lbPro: "Pro",
+        lbFoot: "El ranking es compartido (Supabase).<br>Juega y pulsa Actualizar.",
+        nickTitle: "Introduce nick",
+        nickText: "Nick para el ranking. Solo letras latinas, números y “_”.",
+        save: "Guardar",
+        nickHint: "3–16 caracteres, solo A–Z 0–9 _",
+        resultTpl: (s, acc, m) => `Resultado: <b>${s}</b> hits · <b>${acc}%</b> precisión · modo: <b>${m}</b>`,
+        running: "Prueba en curso... ¡clic rápido!",
+        backToMenu: "Volver al menú.",
+        loading: "Cargando ranking online...",
+        loaded: (n) => `Online: <b>${n}</b> filas · pulsa Refresh para actualizar.`,
+        fail: "No se pudo cargar el ranking (revisa RLS/policies y la tabla).",
+        modeLabel: (m) => (m === "pro" ? "PRO" : "NORMAL"),
+      },
+      fr: {
+        title: "COUNTER-STRIKE SPEED TEST",
+        subtitle: "<b>Developer: Klim</b> · Clique le cercle blanc le plus vite possible (30s)",
+        hits: "Touches", miss: "Ratés", best: "Record", time: "Temps", sec: "s", accuracy: "Précision", nick: "Pseudo",
+        back: "← Retour",
+        menuTitle: "SPEED TEST",
+        menuText: "30 secondes. Fais le maximum de <b>Hits</b> sur le cercle blanc.<br><b>PRO</b> — la cible bouge agressivement.",
+        start: "Start",
+        startPro: "Start PRO",
+        hint: "Astuce: raté = clic hors du cercle.",
+        changeNick: "Changer de pseudo",
+        refresh: "Rafraîchir",
+        lbTitle: "ONLINE LEADERBOARD",
+        lbModes: "Normal / Pro",
+        lbPlayer: "Joueur",
+        lbNormal: "Normal",
+        lbPro: "Pro",
+        lbFoot: "Classement partagé (Supabase).<br>Joue et clique Rafraîchir.",
+        nickTitle: "Entrez un pseudo",
+        nickText: "Pseudo requis. Lettres latines, chiffres et “_” uniquement.",
+        save: "Sauver",
+        nickHint: "3–16 caractères, seulement A–Z 0–9 _",
+        resultTpl: (s, acc, m) => `Résultat: <b>${s}</b> hits · <b>${acc}%</b> précision · mode: <b>${m}</b>`,
+        running: "Test en cours... clique vite!",
+        backToMenu: "Retour au menu.",
+        loading: "Chargement du classement...",
+        loaded: (n) => `Online: <b>${n}</b> lignes · clique Refresh.`,
+        fail: "Impossible de charger le classement (vérifie RLS/policies et la table).",
+        modeLabel: (m) => (m === "pro" ? "PRO" : "NORMAL"),
+      },
+      zh: {
+        title: "COUNTER-STRIKE SPEED TEST",
+        subtitle: "<b>Developer: Klim</b> · 30秒内尽可能快地点白色圆圈",
+        hits: "命中", miss: "失误", best: "最佳", time: "时间", sec: "秒", accuracy: "命中率", nick: "昵称",
+        back: "← 返回",
+        menuTitle: "SPEED TEST",
+        menuText: "30秒。点击白色圆圈获得最多 <b>Hits</b>。<br><b>PRO</b> — 目标移动更激进。",
+        start: "开始",
+        startPro: "开始 PRO",
+        hint: "提示：点到圆圈外算失误。",
+        changeNick: "更改昵称",
+        refresh: "刷新排行榜",
+        lbTitle: "ONLINE LEADERBOARD",
+        lbModes: "Normal / Pro",
+        lbPlayer: "玩家",
+        lbNormal: "Normal",
+        lbPro: "Pro",
+        lbFoot: "排行榜对所有人共享（Supabase）。<br>游戏后点击刷新。",
+        nickTitle: "输入昵称",
+        nickText: "排行榜需要昵称。仅限拉丁字母、数字和“_”。",
+        save: "保存",
+        nickHint: "3–16字符，仅 A–Z 0–9 _",
+        resultTpl: (s, acc, m) => `结果：<b>${s}</b> hits · <b>${acc}%</b> 命中率 · 模式：<b>${m}</b>`,
+        running: "测试进行中... 快点！",
+        backToMenu: "返回菜单。",
+        loading: "加载在线排行榜...",
+        loaded: (n) => `Online: <b>${n}</b> 条记录 · 点击刷新更新。`,
+        fail: "无法加载排行榜（检查 RLS/policies 和表）。",
+        modeLabel: (m) => (m === "pro" ? "PRO" : "NORMAL"),
+      }
+    };
+
+    let lang = localStorage.getItem(LANG_KEY) || "en";
+    if(!I18N[lang]) lang = "en";
+    langSel.value = lang;
+
+    function t(){ return I18N[lang] || I18N.en; }
+
+    function applyLang(){
+      document.documentElement.lang = lang;
+      document.querySelectorAll("[data-i18n]").forEach(el => {
+        const key = el.getAttribute("data-i18n");
+        const val = t()[key];
+        if(typeof val === "string"){
+          // some strings include <b>...</b>
+          el.innerHTML = val;
+        }
+      });
+      // refresh foot etc
+      renderLeaderboard().catch(()=>{});
+      // keep result line readable if already shown
+      if(!running && score + miss > 0){
+        const total = score + miss;
+        const acc = total === 0 ? 0 : Math.round((score / total) * 100);
+        resultText.innerHTML = t().resultTpl(score, acc, t().modeLabel(mode));
+      } else if(running){
+        resultText.textContent = t().running;
+      } else {
+        // leave hint text (already translated via data-i18n)
+      }
+    }
+
+    langSel.addEventListener("change", () => {
+      lang = langSel.value;
+      localStorage.setItem(LANG_KEY, lang);
+      applyLang();
+    });
 
     function sanitizeNick(s){
       return (s || "")
@@ -520,7 +735,7 @@
       missEl.textContent = miss;
       timeEl.textContent = time;
       accEl.textContent = "0";
-      resultText.textContent = "Идёт тест... жми быстро!";
+      resultText.textContent = t().running;
 
       menu.style.display = "none";
       target.style.display = "block";
@@ -545,7 +760,7 @@
       menu.style.display = "flex";
 
       if(byBack){
-        resultText.textContent = "Возврат в меню.";
+        resultText.textContent = t().backToMenu;
         return;
       }
 
@@ -557,15 +772,13 @@
 
       const total = score + miss;
       const acc = total === 0 ? 0 : Math.round((score / total) * 100);
-      resultText.innerHTML = `Result: <b>${score}</b> hits · <b>${acc}%</b> accuracy · mode: <b>${mode.toUpperCase()}</b>`;
+      resultText.innerHTML = t().resultTpl(score, acc, t().modeLabel(mode));
 
-      // push to supabase and refresh leaderboard
       pushOnline(nick, mode, score)
         .then(() => renderLeaderboard())
         .catch(() => renderLeaderboard());
     }
 
-    // hit
     target.addEventListener("click", (e) => {
       e.stopPropagation();
       if(!running) return;
@@ -575,14 +788,12 @@
       placeTarget();
     });
 
-    // move away
     target.addEventListener("mouseenter", () => {
       if(!running) return;
       if(mode === "pro") placeTarget();
       else if(Math.random() < 0.35) placeTarget();
     });
 
-    // miss
     arena.addEventListener("click", () => {
       if(!running) return;
       miss++;
@@ -591,7 +802,6 @@
       if(mode === "pro" && Math.random() < 0.35) placeTarget();
     });
 
-    // back
     backBtn.addEventListener("click", (e) => {
       e.stopPropagation();
       endGame(true);
@@ -600,11 +810,10 @@
     document.getElementById("startNormal").addEventListener("click", () => startGame("normal"));
     document.getElementById("startPro").addEventListener("click", () => startGame("pro"));
 
-    // nick modal
     nickSave.addEventListener("click", () => {
       const ok = setNick(nickInput.value);
       if(!ok){
-        alert("Ник должен быть 3–16 символов: a-z 0-9 _");
+        alert("Nickname: 3–16 chars, a-z 0-9 _");
         return;
       }
       hideNickModal();
@@ -617,7 +826,6 @@
     changeNickBtn.addEventListener("click", () => showNickModal());
     refreshLbBtn.addEventListener("click", () => renderLeaderboard());
 
-    // ===== SUPABASE REST HELPERS =====
     async function sbFetch(pathWithQuery, options = {}){
       const url = `${SUPABASE_URL}${pathWithQuery}`;
       const headers = {
@@ -628,7 +836,7 @@
       return await fetch(url, { ...options, headers });
     }
 
-    // ✅ write only if better (never overwrite by worse)
+    // write only if better
     async function pushOnline(nick, mode, hits){
       const q = `/rest/v1/scores?select=hits&nick=eq.${encodeURIComponent(nick)}&mode=eq.${encodeURIComponent(mode)}&limit=1`;
       const r1 = await sbFetch(q, { method: "GET" });
@@ -638,7 +846,6 @@
         const arr = await r1.json();
         if(Array.isArray(arr) && arr.length) current = Number(arr[0].hits || 0);
       }
-
       if(hits <= current) return;
 
       const url = `/rest/v1/scores?on_conflict=nick,mode`;
@@ -646,16 +853,13 @@
 
       const r2 = await sbFetch(url, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Prefer": "resolution=merge-duplicates"
-        },
+        headers: { "Content-Type": "application/json", "Prefer": "resolution=merge-duplicates" },
         body: JSON.stringify(payload),
       });
 
       if(!r2.ok){
-        const t = await r2.text().catch(()=> "");
-        console.log("pushOnline error", r2.status, t);
+        const text = await r2.text().catch(()=> "");
+        console.log("pushOnline error", r2.status, text);
         throw new Error("pushOnline failed");
       }
     }
@@ -663,8 +867,8 @@
     async function loadOnlineScores(){
       const res = await sbFetch(`/rest/v1/scores?select=nick,mode,hits`, { method: "GET" });
       if(!res.ok){
-        const t = await res.text().catch(()=> "");
-        console.log("loadOnline error", res.status, t);
+        const txt = await res.text().catch(()=> "");
+        console.log("loadOnline error", res.status, txt);
         throw new Error("loadOnline failed");
       }
       return await res.json();
@@ -679,13 +883,12 @@
         .replaceAll("'","&#039;");
     }
 
-    // ===== LEADERBOARD RENDER =====
     async function renderLeaderboard(){
       const board = document.getElementById("boardTable");
       board.innerHTML = `
-        <div class="th">Player</div>
-        <div class="th" style="text-align:right;">Normal</div>
-        <div class="th" style="text-align:right;">Pro</div>
+        <div class="th" data-i18n="lbPlayer">${t().lbPlayer}</div>
+        <div class="th" style="text-align:right;" data-i18n="lbNormal">${t().lbNormal}</div>
+        <div class="th" style="text-align:right;" data-i18n="lbPro">${t().lbPro}</div>
       `;
 
       const baseline = [
@@ -701,7 +904,7 @@
       for(const r of baseline) rows.set(r.nick, { ...r });
 
       try{
-        boardFoot.textContent = "Loading online leaderboard...";
+        boardFoot.innerHTML = t().loading;
         const online = await loadOnlineScores();
 
         for(const r of online){
@@ -716,9 +919,9 @@
           rows.set(n, prev);
         }
 
-        boardFoot.innerHTML = `Online: <b>${online.length}</b> rows loaded · click Refresh to update.`;
+        boardFoot.innerHTML = t().loaded(online.length);
       } catch(e){
-        boardFoot.textContent = "Не удалось загрузить онлайн лидерборд (проверь RLS/policies и таблицу).";
+        boardFoot.innerHTML = t().fail;
       }
 
       const list = Array.from(rows.values())
@@ -734,7 +937,7 @@
       }
     }
 
-    // ===== INIT =====
+    // INIT
     if(nick){
       nickLabel.textContent = nick;
     } else {
@@ -742,7 +945,7 @@
       showNickModal();
     }
 
-    renderLeaderboard().catch(()=>{});
+    applyLang();
   </script>
 </body>
 </html>
